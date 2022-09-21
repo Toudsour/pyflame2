@@ -137,6 +137,7 @@ PyABI ELF::WalkTable(int sym, int str, PyAddresses *addrs) {
         reinterpret_cast<const sym_t *>(p() + s->sh_offset + i * s->sh_entsize);
     const char *name =
         reinterpret_cast<const char *>(p() + d->sh_offset + sym->st_name);
+    std::cout << name << std::endl;
     if (!addrs->tstate_addr && strcmp(name, "_PyThreadState_Current") == 0) {
       addrs->tstate_addr = static_cast<unsigned long>(sym->st_value);
     } else if (!addrs->interp_head_addr && strcmp(name, "interp_head") == 0) {

@@ -21,8 +21,6 @@
 #include <memory>
 #include <string>
 
-#include "./config.h"
-
 #if defined(__arm__)
 typedef struct user_regs user_regs_struct;
 #else

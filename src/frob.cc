@@ -32,7 +32,6 @@
 #include <sstream>
 #include <string>
 
-#include "./config.h"
 #include "./exc.h"
 #include "./ptrace.h"
 #include "./pyfrob.h"

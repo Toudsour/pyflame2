@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 
-#include "./config.h"
 #include "./exc.h"
 #include "./namespace.h"
 
