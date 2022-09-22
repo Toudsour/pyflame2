@@ -106,4 +106,4 @@ Namespace::~Namespace() {
     Close(in_);
   }
 }
-}  // namespace pyflame
+} // namespace pyflame

@@ -140,6 +140,16 @@ PyABI ELF::WalkTable(int sym, int str, PyAddresses *addrs) {
     std::cout << name << std::endl;
     if (!addrs->tstate_addr && strcmp(name, "_PyThreadState_Current") == 0) {
       addrs->tstate_addr = static_cast<unsigned long>(sym->st_value);
+    } else if (!addrs->tstate_addr &&
+               strcmp(name, "_PyThreadState_UncheckedGet") == 0) {
+      // In Python 3.7, the _PyThreadState_Current variable is held by
+      // _PyRuntime, which is defined in a private header. This function allows
+      // us to retrieve the pointer to the currently running thread. This
+      // function can't simply be duplicated because the implementation is
+      // defined using a macro to an internal header See
+      // https://github.com/python/cpython/commit/2ebc5ce42a8a9e047e790aefbf9a94811569b2b6
+      // (bpo-30860)
+      addrs->tstate_get_addr = static_cast<unsigned long>(sym->st_value);
     } else if (!addrs->interp_head_addr && strcmp(name, "interp_head") == 0) {
       addrs->interp_head_addr = static_cast<unsigned long>(sym->st_value);
     } else if (!addrs->interp_head_addr &&
@@ -161,6 +171,11 @@ PyABI ELF::WalkTable(int sym, int str, PyAddresses *addrs) {
         // https://www.python.org/dev/peps/pep-0523/
         have_abi = true;
         abi = PyABI::Py36;
+      } else if (strcmp(name, "Py_UTF8Mode") == 0) {
+        // Symbol added in Python 3.7
+        // See https://www.python.org/dev/peps/pep-0540/
+        have_abi = true;
+        abi = PyABI::Py37;
       }
     }
   }

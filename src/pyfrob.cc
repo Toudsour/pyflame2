@@ -18,7 +18,6 @@
 #include <sstream>
 
 #include "./aslr.h"
-#include "./config.h"
 #include "./exc.h"
 #include "./namespace.h"
 #include "./posix.h"
@@ -126,6 +125,12 @@ FROB_FUNCS
 }
 #endif
 
+#ifdef ENABLE_PY37
+namespace py37 {
+FROB_FUNCS
+}
+#endif
+
 // Fill the addrs_ member
 int PyFrob::set_addrs_(PyABI *abi) {
   Namespace ns(pid_);
@@ -171,6 +176,11 @@ int PyFrob::DetectABI(PyABI abi) {
 #ifdef ENABLE_PY36
     case PyABI::Py36:
       get_threads_ = py36::GetThreads;
+      break;
+#endif
+#ifdef ENABLE_PY37
+    case PyABI::Py37:
+      get_threads_ = py37::GetThreads;
       break;
 #endif
     default:

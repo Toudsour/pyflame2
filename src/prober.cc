@@ -33,7 +33,6 @@
 #include <unordered_map>
 #include <utility>
 
-#include "./config.h"
 #include "./exc.h"
 #include "./ptrace.h"
 #include "./pyfrob.h"
@@ -48,7 +47,8 @@ static const char usage_str[] =
      "Common Options:\n"
 #ifdef ENABLE_THREADS
      "  --threads                Enable multi-threading support\n"
-     "  -d, --dump               Dump stacks from all threads (implies --threads)\n"
+     "  -d, --dump               Dump stacks from all threads (implies "
+     "--threads)\n"
 #else
      "  -d, --dump               Dump the current interpreter stack\n"
 #endif
@@ -78,6 +78,9 @@ static const int build_abis[] = {
 #endif
 #ifdef ENABLE_PY36
     36,
+#endif
+#ifdef ENABLE_PY37
+    37,
 #endif
 };
 
@@ -111,9 +114,11 @@ typedef std::unordered_map<frames_t, size_t, FrameHash> buckets_t;
 // Prints all stack traces
 static void PrintFrames(std::ostream &out,
                         const std::vector<FrameTS> &call_stacks,
-                        size_t idle_count, size_t failed_count, bool include_line_number) {
+                        size_t idle_count, size_t failed_count,
+                        bool include_line_number) {
   // Choose function to print frame
-  print_frame_t print_frame_ = include_line_number ? print_frame : print_frame_without_line_number;
+  print_frame_t print_frame_ =
+      include_line_number ? print_frame : print_frame_without_line_number;
 
   if (idle_count) {
     out << "(idle) " << idle_count << "\n";
@@ -150,9 +155,11 @@ static void PrintFrames(std::ostream &out,
 
 // Prints all stack traces with timestamps
 static void PrintFramesTS(std::ostream &out,
-                          const std::vector<FrameTS> &call_stacks, bool include_line_number) {
+                          const std::vector<FrameTS> &call_stacks,
+                          bool include_line_number) {
   // Choose function to print frame
-  print_frame_t print_frame_ = include_line_number ? print_frame : print_frame_without_line_number;
+  print_frame_t print_frame_ =
+      include_line_number ? print_frame : print_frame_without_line_number;
 
   for (const auto &call_stack : call_stacks) {
     out << std::chrono::duration_cast<std::chrono::microseconds>(
@@ -207,80 +214,83 @@ int Prober::ParseOpts(int argc, char **argv) {
       break;
     }
     switch (c) {
-      case 'a':
-        abi_version = std::strtol(optarg, nullptr, 10);
-        switch (abi_version) {
-          case 26:
-          case 27:
-            abi_ = PyABI::Py26;
-            break;
-          case 34:
-          case 35:
-            abi_ = PyABI::Py34;
-            break;
-          case 36:
-            abi_ = PyABI::Py36;
-            break;
-          default:
-            std::cerr << "Unknown or unsupported ABI version: " << abi_version
-                      << "\n";
-            return 1;
-            break;
-        }
+    case 'a':
+      abi_version = std::strtol(optarg, nullptr, 10);
+      switch (abi_version) {
+      case 26:
+      case 27:
+        abi_ = PyABI::Py26;
         break;
-      case 'd':
-        dump_ = true;
-#if ENABLE_THREADS
-        enable_threads_ = true;
-#endif
+      case 34:
+      case 35:
+        abi_ = PyABI::Py34;
         break;
-      case 'h':
-        std::cout << PYFLAME_VERSION_STR << "\n\n" << usage_str;
-        return 0;
+      case 36:
+        abi_ = PyABI::Py36;
         break;
-#ifdef ENABLE_THREADS
-      case 'L':
-        enable_threads_ = true;
-        break;
-#endif
-      case 'p':
-        if ((pid_ = ParsePid(optarg)) == -1) {
-          return 1;
-        }
-        break;
-      case 'r':
-        sample_rate_ = std::stod(optarg);
-        break;
-      case 's':
-        seconds_ = std::stod(optarg);
-        break;
-      case 't':
-        trace_ = true;
-        seconds_ = -1;
-        goto finish_arg_parse;
-        break;
-      case 'T':
-        include_ts_ = true;
-        break;
-      case 'v':
-        ShowVersion(std::cout);
-        return 0;
-        break;
-      case 'x':
-        include_idle_ = false;
-        break;
-      case 'o':
-        output_file_ = optarg;
-        break;
-      case 'n':
-        include_line_number_ = false;
-        break;
-      case '?':
-        // getopt_long should already have printed an error message
+      case 37:
+        abi_ = PyABI::Py37;
         break;
       default:
-        std::cerr << "unrecognized command line flag: " << optarg << "\n";
-        abort();
+        std::cerr << "Unknown or unsupported ABI version: " << abi_version
+                  << "\n";
+        return 1;
+        break;
+      }
+      break;
+    case 'd':
+      dump_ = true;
+#if ENABLE_THREADS
+      enable_threads_ = true;
+#endif
+      break;
+    case 'h':
+      std::cout << PYFLAME_VERSION_STR << "\n\n" << usage_str;
+      return 0;
+      break;
+#ifdef ENABLE_THREADS
+    case 'L':
+      enable_threads_ = true;
+      break;
+#endif
+    case 'p':
+      if ((pid_ = ParsePid(optarg)) == -1) {
+        return 1;
+      }
+      break;
+    case 'r':
+      sample_rate_ = std::stod(optarg);
+      break;
+    case 's':
+      seconds_ = std::stod(optarg);
+      break;
+    case 't':
+      trace_ = true;
+      seconds_ = -1;
+      goto finish_arg_parse;
+      break;
+    case 'T':
+      include_ts_ = true;
+      break;
+    case 'v':
+      ShowVersion(std::cout);
+      return 0;
+      break;
+    case 'x':
+      include_idle_ = false;
+      break;
+    case 'o':
+      output_file_ = optarg;
+      break;
+    case 'n':
+      include_line_number_ = false;
+      break;
+    case '?':
+      // getopt_long should already have printed an error message
+      break;
+    default:
+      std::cerr << "unrecognized command line flag: " << optarg << "\n";
+      abort();
     }
   }
 finish_arg_parse:
@@ -445,7 +455,8 @@ int Prober::ProbeLoop(const PyFrob &frobber, std::ostream *out) {
 finish:
   if (!call_stacks.empty() || idle_count || failed_count) {
     if (!include_ts_) {
-      PrintFrames(*out, call_stacks, idle_count, failed_count, include_line_number_);
+      PrintFrames(*out, call_stacks, idle_count, failed_count,
+                  include_line_number_);
     } else {
       PrintFramesTS(*out, call_stacks, include_line_number_);
     }
@@ -500,4 +511,4 @@ pid_t Prober::ParsePid(const char *pid_str) {
   }
   return static_cast<pid_t>(pid);
 }
-}  // namespace pyflame
+} // namespace pyflame
