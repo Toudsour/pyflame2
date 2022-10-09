@@ -20,13 +20,13 @@
 #include <string>
 
 namespace pyflame {
-int OpenRdonly(const char *path);
-void Close(int fd);
+    int OpenRdonly(const char *path);
+    void Close(int fd);
 
-void Fstat(int fd, struct stat *buf);
-void Lstat(const char *path, struct stat *buf);
+    void Fstat(int fd, struct stat *buf);
+    void Lstat(const char *path, struct stat *buf);
 
-void SetNs(int fd);
+    void SetNs(int fd);
 
-std::string ReadLink(const char *path);
-}  // namespace pyflame
+    std::string ReadLink(const char *path);
+}// namespace pyflame

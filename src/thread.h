@@ -26,31 +26,33 @@
 
 namespace pyflame {
 
-class Thread {
- public:
-  Thread() = delete;
-  Thread(const Thread &other)
-      : id_(other.id_),
-        is_current_(other.is_current_),
-        frames_(other.frames_) {}
-  Thread(const unsigned long id, const bool is_current,
-         const std::vector<Frame> frames)
-      : id_(id), is_current_(is_current), frames_(frames) {}
+    class Thread {
+    public:
+        Thread() = delete;
+        Thread(const Thread &other)
+            : id_(other.id_),
+              is_current_(other.is_current_),
+              frames_(other.frames_) {}
+        Thread(const unsigned long id, const bool is_current,
+               const std::vector<Frame> frames)
+            : id_(id),
+              is_current_(is_current),
+              frames_(frames) {}
 
-  inline const unsigned long id() const { return id_; }
-  inline const bool is_current() const { return is_current_; }
-  inline const std::vector<Frame> &frames() const { return frames_; }
+        inline const unsigned long id() const { return id_; }
+        inline const bool is_current() const { return is_current_; }
+        inline const std::vector<Frame> &frames() const { return frames_; }
 
-  inline bool operator==(const Thread &other) const {
-    return id_ == other.id_ && is_current_ == other.is_current_ &&
-           frames_ == other.frames_;
-  }
+        inline bool operator==(const Thread &other) const {
+            return id_ == other.id_ && is_current_ == other.is_current_ &&
+                   frames_ == other.frames_;
+        }
 
- private:
-  unsigned long id_;
-  bool is_current_;
-  std::vector<Frame> frames_;
-};
+    private:
+        unsigned long id_;
+        bool is_current_;
+        std::vector<Frame> frames_;
+    };
 
-std::ostream &operator<<(std::ostream &os, const Thread &thread);
-}  // namespace pyflame
+    std::ostream &operator<<(std::ostream &os, const Thread &thread);
+}// namespace pyflame

@@ -20,19 +20,19 @@
 using namespace pyflame;
 
 int main(int argc, char **argv) {
-  Prober prober;
-  int ret = prober.ParseOpts(argc, argv);
-  if (ret != -1) {
-    return ret;
-  }
-  if (prober.InitiatePtrace(argv)) {
-    return 1;
-  }
-  PyFrob frobber(prober.pid(), prober.enable_threads());
-  if (prober.FindSymbols(&frobber)) {
-    return 1;
-  }
+    Prober prober;
+    int ret = prober.ParseOpts(argc, argv);
+    if (ret != -1) {
+        return ret;
+    }
+    if (prober.InitiatePtrace(argv)) {
+        return 1;
+    }
+    PyFrob frobber(prober.pid(), prober.enable_threads());
+    if (prober.FindSymbols(&frobber)) {
+        return 1;
+    }
 
-  // Probe in a loop.
-  return prober.Run(frobber);
+    // Probe in a loop.
+    return prober.Run(frobber);
 }

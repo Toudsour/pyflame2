@@ -28,82 +28,82 @@
 #include "./posix.h"
 
 namespace {
-const char kOurMnt[] = "/proc/self/ns/mnt";
+    const char kOurMnt[] = "/proc/self/ns/mnt";
 }
 
 namespace pyflame {
-Namespace::Namespace(pid_t pid) : out_(-1), in_(-1) {
-  struct stat in_st;
-  std::ostringstream os;
-  os << "/proc/" << pid << "/ns/mnt";
-  const std::string their_mnt = os.str();
+    Namespace::Namespace(pid_t pid) : out_(-1), in_(-1) {
+        struct stat in_st;
+        std::ostringstream os;
+        os << "/proc/" << pid << "/ns/mnt";
+        const std::string their_mnt = os.str();
 
-  struct stat out_st;
+        struct stat out_st;
 
-  // In the case of no namespace support (ie ancient boxen), still make an
-  // attempt to work
-  if (lstat(kOurMnt, &out_st) < 0) {
-    std::cerr << "Failed to lstat path " << kOurMnt << ": " << strerror(errno);
-    out_ = in_ = -1;
-    return;
-  }
+        // In the case of no namespace support (ie ancient boxen), still make an
+        // attempt to work
+        if (lstat(kOurMnt, &out_st) < 0) {
+            std::cerr << "Failed to lstat path " << kOurMnt << ": " << strerror(errno);
+            out_ = in_ = -1;
+            return;
+        }
 
-  // Since Linux 3.8 symbolic links are used.
-  if (S_ISLNK(out_st.st_mode)) {
-    char our_name[PATH_MAX];
-    ssize_t ourlen = readlink(kOurMnt, our_name, sizeof(our_name));
-    if (ourlen < 0) {
-      std::ostringstream ss;
-      ss << "Failed to readlink " << kOurMnt << ": " << strerror(errno);
-      throw FatalException(ss.str());
+        // Since Linux 3.8 symbolic links are used.
+        if (S_ISLNK(out_st.st_mode)) {
+            char our_name[PATH_MAX];
+            ssize_t ourlen = readlink(kOurMnt, our_name, sizeof(our_name));
+            if (ourlen < 0) {
+                std::ostringstream ss;
+                ss << "Failed to readlink " << kOurMnt << ": " << strerror(errno);
+                throw FatalException(ss.str());
+            }
+            our_name[ourlen] = '\0';
+
+            char their_name[PATH_MAX];
+            ssize_t theirlen =
+                    readlink(their_mnt.c_str(), their_name, sizeof(their_name));
+            if (theirlen < 0) {
+                std::ostringstream ss;
+                ss << "Failed to readlink " << their_mnt.c_str() << ": "
+                   << strerror(errno);
+                throw FatalException(ss.str());
+            }
+            their_name[theirlen] = '\0';
+
+            if (strcmp(our_name, their_name) != 0) {
+                out_ = OpenRdonly(kOurMnt);
+                in_ = OpenRdonly(their_mnt.c_str());
+            }
+        } else {
+            // Before Linux 3.8 these are hard links.
+            out_ = OpenRdonly(kOurMnt);
+            Fstat(out_, &out_st);
+
+            in_ = OpenRdonly(os.str().c_str());
+            Fstat(in_, &in_st);
+            if (out_st.st_ino == in_st.st_ino) {
+                Close(out_);
+                Close(in_);
+                out_ = in_ = -1;
+            }
+        }
     }
-    our_name[ourlen] = '\0';
 
-    char their_name[PATH_MAX];
-    ssize_t theirlen =
-        readlink(their_mnt.c_str(), their_name, sizeof(their_name));
-    if (theirlen < 0) {
-      std::ostringstream ss;
-      ss << "Failed to readlink " << their_mnt.c_str() << ": "
-         << strerror(errno);
-      throw FatalException(ss.str());
+    int Namespace::Open(const char *path) {
+        if (in_ != -1) {
+            SetNs(in_);
+            int fd = open(path, O_RDONLY);
+            SetNs(out_);
+            return fd;
+        } else {
+            return open(path, O_RDONLY);
+        }
     }
-    their_name[theirlen] = '\0';
 
-    if (strcmp(our_name, their_name) != 0) {
-      out_ = OpenRdonly(kOurMnt);
-      in_ = OpenRdonly(their_mnt.c_str());
+    Namespace::~Namespace() {
+        if (out_) {
+            Close(out_);
+            Close(in_);
+        }
     }
-  } else {
-    // Before Linux 3.8 these are hard links.
-    out_ = OpenRdonly(kOurMnt);
-    Fstat(out_, &out_st);
-
-    in_ = OpenRdonly(os.str().c_str());
-    Fstat(in_, &in_st);
-    if (out_st.st_ino == in_st.st_ino) {
-      Close(out_);
-      Close(in_);
-      out_ = in_ = -1;
-    }
-  }
-}
-
-int Namespace::Open(const char *path) {
-  if (in_ != -1) {
-    SetNs(in_);
-    int fd = open(path, O_RDONLY);
-    SetNs(out_);
-    return fd;
-  } else {
-    return open(path, O_RDONLY);
-  }
-}
-
-Namespace::~Namespace() {
-  if (out_) {
-    Close(out_);
-    Close(in_);
-  }
-}
-} // namespace pyflame
+}// namespace pyflame

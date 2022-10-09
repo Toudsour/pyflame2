@@ -26,7 +26,8 @@ set(PYFLAME2_HEADER
         src/pyfrob.h
         src/setns.h
         src/symbol.h
-        src/thread.h src/frob37.cc)
+        src/thread.h
+        src/frob37.cc)
 
 find_package (Python3 3.7 EXACT COMPONENTS Interpreter Development)
 

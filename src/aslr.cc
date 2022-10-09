@@ -20,27 +20,27 @@
 #include <stdexcept>
 
 namespace pyflame {
-// Find libpython2.7.so and its offset for an ASLR process
-size_t LocateLibPython(pid_t pid, const std::string &hint, std::string *path) {
-  std::ostringstream ss;
-  ss << "/proc/" << pid << "/maps";
-  std::ifstream fp(ss.str());
-  std::string line;
-  std::string elf_path;
-  while (std::getline(fp, line)) {
-    if (line.find(hint) != std::string::npos) {
-      size_t pos = line.find('/');
-      if (pos == std::string::npos) {
-        throw FatalException("Did not find libpython absolute path");
-      }
-      *path = line.substr(pos);
-      pos = line.find('-');
-      if (pos == std::string::npos) {
-        throw FatalException("Did not find libpython virtual memory address");
-      }
-      return std::strtoul(line.substr(0, pos).c_str(), nullptr, 16);
+    // Find libpython2.7.so and its offset for an ASLR process
+    size_t LocateLibPython(pid_t pid, const std::string &hint, std::string *path) {
+        std::ostringstream ss;
+        ss << "/proc/" << pid << "/maps";
+        std::ifstream fp(ss.str());
+        std::string line;
+        std::string elf_path;
+        while (std::getline(fp, line)) {
+            if (line.find(hint) != std::string::npos) {
+                size_t pos = line.find('/');
+                if (pos == std::string::npos) {
+                    throw FatalException("Did not find libpython absolute path");
+                }
+                *path = line.substr(pos);
+                pos = line.find('-');
+                if (pos == std::string::npos) {
+                    throw FatalException("Did not find libpython virtual memory address");
+                }
+                return std::strtoul(line.substr(0, pos).c_str(), nullptr, 16);
+            }
+        }
+        return 0;
     }
-  }
-  return 0;
-}
-}  // namespace pyflame
+}// namespace pyflame

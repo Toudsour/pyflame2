@@ -21,35 +21,35 @@
 // This abstracts the representation of py2/py3
 namespace pyflame {
 
-// Get the threads. Each thread stack will be in reverse order (most recent
-// frame first).
-typedef std::vector<Thread> (*get_threads_t)(pid_t, PyAddresses, bool);
+    // Get the threads. Each thread stack will be in reverse order (most recent
+    // frame first).
+    typedef std::vector<Thread> (*get_threads_t)(pid_t, PyAddresses, bool);
 
-// Frobber to get python stack stuff; this encapsulates all of the Python
-// interpreter logic.
-class PyFrob {
- public:
-  PyFrob(pid_t pid, bool enable_threads)
-      : pid_(pid), enable_threads_(enable_threads) {}
-  ~PyFrob() { PtraceCleanup(pid_); }
+    // Frobber to get python stack stuff; this encapsulates all of the Python
+    // interpreter logic.
+    class PyFrob {
+    public:
+        PyFrob(pid_t pid, bool enable_threads)
+            : pid_(pid), enable_threads_(enable_threads) {}
+        ~PyFrob() { PtraceCleanup(pid_); }
 
-  // Must be called before GetThreads() to detect the Python ABI.
-  int DetectABI(PyABI abi);
+        // Must be called before GetThreads() to detect the Python ABI.
+        int DetectABI(PyABI abi);
 
-  // Get the current frame list.
-  std::vector<Thread> GetThreads(void) const;
+        // Get the current frame list.
+        std::vector<Thread> GetThreads(void) const;
 
-  // Useful when debugging.
-  std::string Status() const;
+        // Useful when debugging.
+        std::string Status() const;
 
- private:
-  pid_t pid_;
-  PyAddresses addrs_;
-  bool enable_threads_;
-  get_threads_t get_threads_;
+    private:
+        pid_t pid_;
+        PyAddresses addrs_;
+        bool enable_threads_;
+        get_threads_t get_threads_;
 
-  // Fill the addrs_ member
-  int set_addrs_(PyABI *abi);
-};
+        // Fill the addrs_ member
+        int set_addrs_(PyABI *abi);
+    };
 
-}  // namespace pyflame
+}// namespace pyflame

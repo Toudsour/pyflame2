@@ -19,6 +19,6 @@
 #include <string>
 
 namespace pyflame {
-// Find libpython2.7.so and its offset for an ASLR process.
-size_t LocateLibPython(pid_t pid, const std::string &hint, std::string *path);
-}  // namespace pyflame
+    // Find libpython2.7.so and its offset for an ASLR process.
+    size_t LocateLibPython(pid_t pid, const std::string &hint, std::string *path);
+}// namespace pyflame

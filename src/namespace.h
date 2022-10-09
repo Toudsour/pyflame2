@@ -17,18 +17,18 @@
 #include <sys/types.h>
 
 namespace pyflame {
-// Implementation of a Linux filesystem namespace
-class Namespace {
- public:
-  Namespace() = delete;
-  explicit Namespace(pid_t pid);
-  ~Namespace();
+    // Implementation of a Linux filesystem namespace
+    class Namespace {
+    public:
+        Namespace() = delete;
+        explicit Namespace(pid_t pid);
+        ~Namespace();
 
-  // Get a file descriptor in the namespace
-  int Open(const char *path);
+        // Get a file descriptor in the namespace
+        int Open(const char *path);
 
- private:
-  int out_;  // file descriptor that lets us return to our original namespace
-  int in_;   // file descriptor that lets us enter the target namespace
-};
-}  // namespace pyflame
+    private:
+        int out_;// file descriptor that lets us return to our original namespace
+        int in_; // file descriptor that lets us enter the target namespace
+    };
+}// namespace pyflame
